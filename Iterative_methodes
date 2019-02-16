@@ -1,6 +1,22 @@
 
 using LinearAlgebra
+#=
+general_iterative_methode
+ PURPOSE : solving Ax = b useing an iterative method
+ OUTPUT :  x such that ||Ax - b|| < tolerance (useing atmost max_iter iterations)
+ INPUT : A,x,b,max_iter,tolerance (as explained above) M_1 - is the invers of a matrix M that approximate A (dependes on a the mathod in use)
 
+ EXEMPLE :
+ A = [4 -1 1 ; 4 -8 1 ;-2 1 5]
+ b = [7 , -1 , 15 ]
+ x = [1 , 2, 2]
+ tolerance = 10^-15
+ max_iter = 10^5
+ M_1 = Diagonal(1 ./A) #(jacobi)
+ general_iterative_methode(A,M_1,x,b,max_iter,tolerance)
+ > [1.22078, 1.14286, 3.25974]
+
+=#
 function general_iterative_methode(A,M_1,x,b,max_iter,tolerance)
   for i in 1:max_iter
     r = A*x - b
