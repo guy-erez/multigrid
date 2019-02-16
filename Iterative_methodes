@@ -1,0 +1,23 @@
+
+using LinearAlgebra
+
+function general_iterative_methode(A,M_1,x,b,max_iter,tolerance)
+  for i in 1:max_iter
+    r = A*x - b
+    norm(r) > tolerance ? x = x + M_1*(b - A*x) : return x
+  end
+  return x
+end
+
+function jacobi(A,x,b,max_iter,tolerance)
+  M_1 = Diagonal(1 ./A)
+  general_iterative_methode(A,M_1,x,b,max_iter,tolerance)
+end
+
+A = [4 -1 1 ; 4 -8 1 ;-2 1 5]
+b = [7 , -1 , 15 ]
+x = [1 , 2, 2]
+
+x = jacobi(A,x,b,10^5,10^-10)
+
+println("the approximate vector is $x\nthe residual norm is $(norm(A*x - b)) ")
