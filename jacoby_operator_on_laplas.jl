@@ -22,11 +22,13 @@ function Apply2DJacobi(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p
 end
 
 
-function multOpDirichlet!(n,h,x,w,f::Array,y::Array,op::Function)
+function multOpDirichlet!(n,h,x::Array,y::Array,w::Float64,f::Array,op::Function)
 dim = 2;
 if dim==2
 	n1 = n[1]-1;
 	n2 = n[2]-1;
+	h1 = h[1]
+	h2 = h[2]
 # first dot on first column --> zeros to the left and above
 	y[1] = op(x[1],0.0,x[2],0.0,x[n1+1],h1,h2,w,f[1]);
 	for i=2:n1-1
@@ -69,7 +71,9 @@ n = [10,10];
 h = 1.0./n;
 u = randn(tuple((n.-1)...))
 y = randn(tuple((n.-1)...))
+f = randn(tuple((n.-1)...))
+w = 2.0/3.0
 
-multOpDirichlet!(n,h,u,y,Apply2DJacobi);
+multOpDirichlet!(n,h,u,y,w,f,Apply2DJacobi);
 
 println(y)
