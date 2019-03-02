@@ -24,10 +24,10 @@ function Apply2DJacobiStep(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64
 end
 
 
-function jacobi!(n, h, u::Array, y::Array, w::Float64, f::Array, max_iter ::Int , tolerance ::Float64 ,boundry_condition :: Function)
+function jacobi!(n, h, u::Array, output::Array, w::Float64, f::Array, max_iter ::Int , tolerance ::Float64 ,boundry_condition :: Function)
 	for i in 1:max_iter
-		boundry_condition(n,h,u,y,w,f,Apply2DJacobiStep)
-		u = y
+		boundry_condition(n,h,u,output,w,f,Apply2DJacobiStep)
+		u = output
 	end
 end
 
@@ -80,14 +80,19 @@ h = 1.0./n;
 u = randn(tuple((n.-1)...))
 output_jacobi = randn(tuple((n.-1)...))
 output_laplasian = randn(tuple((n.-1)...))
-f = randn(tuple((n.-1)...))
+f = fill(0.0,tuple((n.-1)...))
 w = 2.0/3.0
 
-jacobi!(n,h,u,output_jacobi,w,f,50, 10^-10,multOpDirichlet!)
+jacobi!(n,h,u,output_jacobi,w,f,10, 10^-10,multOpDirichlet!)
 multOpDirichlet!(n,h,output_jacobi,output_laplasian,w,f,Apply2DLaplasian)   # laplasian on the output of jacoi into "output_laplasian"
 residual = output_laplasian - f
 
-println("\nthe approximate value is : $y and the abs of the residual norm is $(norm(residual))")
+println("\nthe approximate value is : $output_jacobi \nthe abs of the residual norm is $(norm(residual))\n$(size(output_jacobi))")
 
+#ploting
 
-# i dont understand
+x = 1:n[1]-1
+y= 1:n[2]-1
+
+plot(x,y,output_jacobi,st=:surface,camera=(-30,30))
+savefig("plot_fig")
