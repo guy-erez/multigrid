@@ -63,7 +63,7 @@ function interolation_Dirichlet!(n,h,x::Array,y::Array)
 	y[n1_fine + (n2_fine-1)*n1_fine] = x[n1_coarse + (n2_coarse-1)*n1_coarse]/4
 end
 
-n_fine = [2^5+1,2^5+1];
+n_fine = [2^4+1,2^5+1];
 h_fine = 1.0./n_fine;
 n_coarse = (n_fine.-1)/2
 n_coarse = [Int(x)+1 for x in n_coarse]
@@ -75,12 +75,12 @@ x_coarse = randn(tuple((n_coarse.-1)...))
 interolation_Dirichlet!(n_fine,h_fine,x_coarse,x_fine)
 println("done")
 
-x1 = 1:n_fine[1]-1
-y1 = 1:n_fine[2]-1
+y1 = 1:n_fine[1]-1
+x1 = 1:n_fine[2]-1
 p1 = plot(x1,y1,x_fine,st=:surface,camera=(-30,30))
 
-x2 = 1:n_coarse[1]-1
-y2 = 1:n_coarse[2]-1
+y2 = 1:n_coarse[1]-1
+x2 = 1:n_coarse[2]-1
 p2 = plot(x2,y2,x_coarse,st=:surface,camera=(-30,30))
 
 plot(p1,p2,layout=(1,2),legend=false)
