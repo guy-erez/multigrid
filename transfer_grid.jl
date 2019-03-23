@@ -28,19 +28,24 @@ function interpolation_Dirichlet!(n_cells,h,x::Array,y::Array)
 	n1_fine = Int(n1_fine-1)
 	n2_fine = Int(n2_fine-1)
 
-	(~,~,~,y[1]) = inner_loop_interpolation(0.0,0.0,0.0,x[1]) #first column - first node #
-
-	(~,y[1 + (n2_fine - 2)*n1_fine],~,y[1 + (n2_fine - 1)*n1_fine]) = inner_loop_interpolation(0.0,x[1 + (n2_coarse-1)*n1_coarse],0.0,0.0) #last column - first node#
-
-	(~,~,y[n1_fine-1],y[n1_fine]) = inner_loop_interpolation(0.0,0.0,x[n1_coarse],0.0) #first coluumn - last node #
-
+	# first column - first node #
+	(~,~,~,y[1]) =
+	inner_loop_interpolation(0.0,0.0,0.0,x[1])
+	# last column - first node #
+	(~,y[1 + (n2_fine - 2)*n1_fine],~,y[1 + (n2_fine - 1)*n1_fine]) =
+	inner_loop_interpolation(0.0,x[1 + (n2_coarse-1)*n1_coarse],0.0,0.0)
+	# first coluumn - last node #
+	(~,~,y[n1_fine-1],y[n1_fine]) =
+	inner_loop_interpolation(0.0,0.0,x[n1_coarse],0.0)
+	# last column - last node #
 	(y[(n1_fine - 1) + (n2_fine - 2)*n1_fine] , y[n1_fine + (n2_fine -2 )*n1_fine] , y[(n1_fine - 1) + (n2_fine - 1 )*n1_fine] , y[n1_fine*n2_fine] ) =
-	inner_loop_interpolation(x[n1_coarse*n2_coarse],0.0,0.0,0.0) #last column - last node #
+	inner_loop_interpolation(x[n1_coarse*n2_coarse],0.0,0.0,0.0)
 
 	for i = 1 : n1_coarse-1
-		#first coluumn
-		(~,~,y[2*i],y[2*i + 1]) = inner_loop_interpolation(0,0,x[i],x[i + 1])
-		#last column
+		# first coluumn #
+		(~,~,y[2*i],y[2*i + 1]) =
+		inner_loop_interpolation(0,0,x[i],x[i + 1])
+		# last column #
 		(y[2*i + (n2_fine - 2)*n1_fine] , y[(2*i + 1) + (n2_fine - 2)*n1_fine] , y[2*i + (n2_fine - 1)*n1_fine] , y[(2*i + 1) + (n2_fine - 1)*n1_fine]) =
 		inner_loop_interpolation(x[i + (n2_coarse - 1)*n1_coarse],x[(i + 1) + (n2_coarse - 1)*n1_coarse], 0.0 , 0.0) #last column
 	end
@@ -48,11 +53,14 @@ function interpolation_Dirichlet!(n_cells,h,x::Array,y::Array)
 	# inner nodes #
 
 	for j = 1 : n2_coarse - 1
-		(~,y[1 + (2*j - 1)*n1_fine],~,y[1 + (2*j)*n1_fine]) = inner_loop_interpolation(0.0,x[1 + (j-1)*n1_coarse],0.0,x[1 + (j)*n1_coarse])
+		# first node on each column #
+		(~,y[1 + (2*j - 1)*n1_fine],~,y[1 + (2*j)*n1_fine]) =
+		inner_loop_interpolation(0.0,x[1 + (j-1)*n1_coarse],0.0,x[1 + (j)*n1_coarse])
 		for i = 1 : n1_coarse - 1
 			(y[2*i + (2*j - 1)*n1_fine],y[(2*i + 1) + (2*j - 1)*n1_fine],y[2*i + (2*j)*n1_fine],y[(2*i + 1)+ (2*j)*n1_fine]) =
 			inner_loop_interpolation(x[i + (j-1)*n1_coarse],x[(i + 1) + (j-1)*n1_coarse],x[i + (j)*n1_coarse],x[(i + 1) + (j)*n1_coarse])
 		end
+		# last nose on each column #
 		i = n1_coarse
 		(y[2*i + (2*j - 1)*n1_fine],y[(2*i + 1) + (2*j - 1)*n1_fine],y[2*i + (2*j)*n1_fine],y[(2*i + 1)+ (2*j)*n1_fine]) =
 		inner_loop_interpolation(x[i + (j-1)*n1_coarse],0.0,x[i + (j)*n1_coarse],0.0)
