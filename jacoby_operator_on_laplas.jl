@@ -12,7 +12,7 @@ INPUT : u0 - the possition where the laplasian is approximated.
 OUTPUT : the value of the approximation to the laplasian at u0.
 =#
 
-function Apply2DLaplasian(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p2::Float64,h1::Float64,h2::Float64,w,f) # x-->u
+function Apply2DLaplasian(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p2::Float64,h1::Float64,h2::Float64,w::Float64,f::Array) # x-->u
 	h1invsq = 1.0/(h1^2) # calculted every time with no need
 	h2invsq = 1.0/(h2^2) # calculted every time with no need
 	return (2*h1invsq + 2*h2invsq)*u0 - h1invsq*(u_m1 + u_p1) - h2invsq*(u_m2 + u_p2);
@@ -26,15 +26,15 @@ function Apply2DJacobiStep(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64
 end
 
 
-function jacobi!(n, h, initial_guss::Array, output::Array, max_iter ::Int  ,boundry_condition :: Function)
+function jacobi!(n, h, initial_guss::Array,w::Float64,f::Array, output::Array, max_iter::Int64)
 	for i in 1:max_iter
-		boundry_condition(n,h,initial_guss,output,Apply2DJacobiStep)
+		multOpDirichlet!(n,h,initial_guss,output,Apply2DJacobiStep,w,f)
 		initial_guss = output
 	end
 end
 
 
-function multOpDirichlet!(n_cells,h,x::Array,y::Array,op::Function)
+function multOpDirichlet!(n_cells,h,x::Array,y::Array,op::Function,w,f::Array)
 	dim = 2;
 	if dim==2
 		n1 = n_cells[1]-1;
@@ -85,8 +85,8 @@ output_laplasian = randn(tuple((n.-1)...))
 f = fill(0.0,tuple((n.-1)...))
 w = 4.0/5.0
 
-jacobi!(n,h,u,output_jacobi,1200,multOpDirichlet!)
-multOpDirichlet!(n,h,output_jacobi,output_laplasian,Apply2DLaplasian)   # laplasian on the output of jacoi into "output_laplasian"
+jacobi!(n,h,u,w,f,output_jacobi,1200)
+multOpDirichlet!(n,h,output_jacobi,output_laplasian,Apply2DLaplasian,w,f)   # laplasian on the output of jacoi into "output_laplasian"
 residual = output_laplasian - f
 
 println("\nthe approximate value is :")

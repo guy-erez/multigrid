@@ -14,7 +14,7 @@ function inner_loop_interpolation(u11,u21,u12,u22)
 end
 
 #=
-INPUT : n - a vector containing the number of cells on each dimention --> output grid
+INPUT : n_cells - a vector containing the number of cells on each dimention --> output grid
 		h - a vector containing the spaceing of nodes on each dimention --> output grid
 		x - a "matrix" of size (n1/2)-1*(n2/2)-1 containing the values on the points --> coarse grid
 		y - a place holder of size n1-1*n2-1 for the answer  --> fine grid
@@ -80,7 +80,6 @@ function full_weighting_Dirichlet!(n_cells,h,x::Array,y::Array)
 	n2_coarse = n_cells[2] - 1
 	n1_fine = Int((n_cells[1]*2))-1
 	n2_fine = Int((n_cells[2]*2))-1
-
 	for j = 1 : n2_coarse
 		for i = 1 : n1_coarse
 			y[i + (j-1)*n1_coarse] =
