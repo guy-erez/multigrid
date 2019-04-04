@@ -81,8 +81,6 @@ function full_weighting_Dirichlet!(n_cells,h,x::Array,y::Array)
 	n1_fine = Int((n_cells[1]*2))-1
 	n2_fine = Int((n_cells[2]*2))-1
 
-	println(n1_fine,"x",n2_fine," ",n1_coarse,"x",n2_coarse)
-
 	for j = 1 : n2_coarse
 		for i = 1 : n1_coarse
 			y[i + (j-1)*n1_coarse] =

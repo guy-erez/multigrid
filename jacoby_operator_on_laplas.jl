@@ -26,54 +26,54 @@ function Apply2DJacobiStep(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64
 end
 
 
-function jacobi!(n, h, u::Array, output::Array, w::Float64, f::Array, max_iter ::Int , tolerance ::Float64 ,boundry_condition :: Function)
+function jacobi!(n, h, initial_guss::Array, output::Array, max_iter ::Int  ,boundry_condition :: Function)
 	for i in 1:max_iter
-		boundry_condition(n,h,u,output,w,f,Apply2DJacobiStep)
-		u = output
+		boundry_condition(n,h,initial_guss,output,Apply2DJacobiStep)
+		initial_guss = output
 	end
 end
 
 
-function multOpDirichlet!(n,h,x::Array,y::Array,w::Float64,f::Array,op::Function)
-dim = 2;
-if dim==2
-	n1 = n[1]-1;   # why dont send from the first place n-1????????????????????????????????????????????????????????????????
-	n2 = n[2]-1;
-	h1 = h[1]
-	h2 = h[2]
-# first dot on first column --> zeros to the left and above
-	y[1] = op(x[1],0.0,x[2],0.0,x[n1+1],h1,h2,w,f[1]);
-	for i=2:n1-1
-# first column --> zeros to the left
-		y[i] = op(x[i],x[i-1],x[i+1],0.0,x[i+n1],h1,h2,w,f[i]);
-	end
-# last dot on first column --> zeros to the left and below
-	y[n1] = op(x[n1],x[n1-1],0.0,0.0,x[n1 + n1],h1,h2,w,f[n1]);
-	for j=2:n2-1
-		colShift = n1*(j-1);
+function multOpDirichlet!(n_cells,h,x::Array,y::Array,op::Function)
+	dim = 2;
+	if dim==2
+		n1 = n_cells[1]-1;
+		n2 = n_cells[2]-1;
+		h1 = h[1]
+		h2 = h[2]
+	# first dot on first column --> zeros to the left and above
+		y[1] = op(x[1],0.0,x[2],0.0,x[n1+1],h1,h2,w,f[1]);
+		for i=2:n1-1
+	# first column --> zeros to the left
+			y[i] = op(x[i],x[i-1],x[i+1],0.0,x[i+n1],h1,h2,w,f[i]);
+		end
+	# last dot on first column --> zeros to the left and below
+		y[n1] = op(x[n1],x[n1-1],0.0,0.0,x[n1 + n1],h1,h2,w,f[n1]);
+		for j=2:n2-1
+			colShift = n1*(j-1);
+			i = 1 + colShift;
+	# first dot on a column --> zero above
+			y[i] = op(x[i],0.0,x[i+1],x[i-n1],x[i+n1],h1,h2,w,f[i]);
+			for i = (2 + colShift):(n1-1 + colShift)
+				y[i] = op(x[i],x[i-1],x[i+1],x[i-n1],x[i+n1],h1,h2,w,f[i]);
+			end
+			i = n1 + colShift;
+	# last dot on a column --> zero below
+			y[i] = op(x[i],x[i-1],0.0,x[i-n1],x[i+n1],h1,h2,w,f[i]);
+		end
+		colShift = n1*(n2-1);
 		i = 1 + colShift;
-# first dot on a column --> zero above
-		y[i] = op(x[i],0.0,x[i+1],x[i-n1],x[i+n1],h1,h2,w,f[i]);
+	# first dot on last column --> zeros to the right and above
+		y[i] = op(x[i],0.0,x[i+1],x[i-n1],0.0,h1,h2,w,f[i]);
 		for i = (2 + colShift):(n1-1 + colShift)
-			y[i] = op(x[i],x[i-1],x[i+1],x[i-n1],x[i+n1],h1,h2,w,f[i]);
+	# last column --> zeros to the right
+			y[i] = op(x[i],x[i-1],x[i+1],x[i-n1],0.0,h1,h2,w,f[i]);
 		end
 		i = n1 + colShift;
-# last dot on a column --> zero below
-		y[i] = op(x[i],x[i-1],0.0,x[i-n1],x[i+n1],h1,h2,w,f[i]);
+	# last dot on last column --> zero to the right and below
+		y[i] = op(x[i],x[i-1],0.0,x[i-n1],0.0,h1,h2,w,f[i]);
+	else
 	end
-	colShift = n1*(n2-1);
-	i = 1 + colShift;
-# first dot on last column --> zeros to the right and above
-	y[i] = op(x[i],0.0,x[i+1],x[i-n1],0.0,h1,h2,w,f[i]);
-	for i = (2 + colShift):(n1-1 + colShift)
-# last column --> zeros to the right
-		y[i] = op(x[i],x[i-1],x[i+1],x[i-n1],0.0,h1,h2,w,f[i]);
-	end
-	i = n1 + colShift;
-# last dot on last column --> zero to the right and below
-	y[i] = op(x[i],x[i-1],0.0,x[i-n1],0.0,h1,h2,w,f[i]);
-else
-end
 end
 
 
@@ -85,8 +85,8 @@ output_laplasian = randn(tuple((n.-1)...))
 f = fill(0.0,tuple((n.-1)...))
 w = 4.0/5.0
 
-jacobi!(n,h,u,output_jacobi,w,f,800, 10^-10,multOpDirichlet!)
-multOpDirichlet!(n,h,output_jacobi,output_laplasian,w,f,Apply2DLaplasian)   # laplasian on the output of jacoi into "output_laplasian"
+jacobi!(n,h,u,output_jacobi,1200,multOpDirichlet!)
+multOpDirichlet!(n,h,output_jacobi,output_laplasian,Apply2DLaplasian)   # laplasian on the output of jacoi into "output_laplasian"
 residual = output_laplasian - f
 
 println("\nthe approximate value is :")
