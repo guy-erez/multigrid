@@ -83,9 +83,9 @@ function full_weighting_Dirichlet!(n_cells,h,x::Array,y::Array)
 	for j = 1 : n2_coarse
 		for i = 1 : n1_coarse
 			y[i + (j-1)*n1_coarse] =
-			1/16*(x[(2*i - 1) + (2*j - 2)*n1_fine] + x[(2*i - 1) + (2*j)*n1_fine] + x[(2*i + 1) + (2*j - 2)*n1_fine] + x[(2*i + 1) + (2*j)*n1_fine])+
+			1/16*(x[(2*i - 1) + (2*j - 2)*n1_fine] + x[(2*i - 1) + (2*j)*n1_fine] + x[(2*i + 1) + (2*j - 2)*n1_fine] + x[(2*i + 1) + (2*j)*n1_fine]+
 			2*(x[(2*i) + (2*j - 2)*n1_fine] + x[(2*i) + (2*j)*n1_fine] + x[(2*i - 1) + (2*j - 1)*n1_fine] + x[(2*i + 1) + (2*j - 1)*n1_fine])+
-			4*(x[2*i + (2*j-1)*n1_fine])
+			4*(x[2*i + (2*j-1)*n1_fine]))
 		end
 	end
 end
