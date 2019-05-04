@@ -12,7 +12,7 @@ INPUT : u0 - the possition where the laplasian is approximated.
 OUTPUT : the value of the approximation to the laplasian at u0.
 =#
 
-function Apply2DLaplasian(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p2::Float64,h1::Float64,h2::Float64,w::Float64,f::Array) # x-->u
+function Apply2DLaplasian(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p2::Float64,h1::Float64,h2::Float64,w::Float64,f::Float64) # x-->u
 	h1invsq = 1.0/(h1^2) # calculted every time with no need
 	h2invsq = 1.0/(h2^2) # calculted every time with no need
 	return (2*h1invsq + 2*h2invsq)*u0 - h1invsq*(u_m1 + u_p1) - h2invsq*(u_m2 + u_p2);
@@ -75,7 +75,7 @@ function multOpDirichlet!(n_cells,h,x::Array,y::Array,op::Function,w,f::Array)
 	else
 	end
 end
-
+println("start jacobi")
 
 n = [100,100];
 h = 1.0./n;

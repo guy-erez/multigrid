@@ -20,14 +20,18 @@ function MG_2!(n_cells::Array, h::Array, initial_guss::Array, w, f::Array, outpu
      # relax on fine grid
     jacobi!(n_cells,h,initial_guss,w,f,output,iter_num)
 
-    # compute output_laplasian <- laplas(output) with Diriclet boundry conditions
-    multOpDirichlet!(n_cells,h,output,output_laplasian,Apply2DLaplasian)
+    # compute the fine residual
+    # compute: output_laplasian <- Laplas(output) with Diriclet boundry conditions
+    multOpDirichlet!(n_cells,h,output,output_laplasian,Apply2DLaplasian,w,f) # f is not in use in Apply2DLaplasian #
     fine_residual = f - output_laplasian
-    println("the norm of the residual after first realaxation : $(norm(fine_residual))")
+
+    # restrict the residual to the coarse grid
     full_weighting_Dirichlet!(n_cells_coarse,h*2,fine_residual,coarse_residual)
 
-    #compute laplasin(error) = residual
+    # solve: laplasin(error) = residual
     jacobi!(n_cells_coarse,h*2,zeros((n_cells_coarse.-1)...),w,coarse_residual,coarse_error,iter_num)
+
+    # Interpolate the coarse-grid error to the fine grid
     interpolation_Dirichlet!(n_cells,h,coarse_error,fine_error)
 
     initial_guss = output + fine_error
@@ -36,7 +40,7 @@ end
 
 
 function test_MG_2()
-    n = [100,100];
+    n = [2^8,2^8];
     h = 1.0./n;
     initial_guss = randn(tuple((n.-1)...))
     output = randn(tuple((n.-1)...))
@@ -44,12 +48,13 @@ function test_MG_2()
     f = fill(0.0,tuple((n.-1)...))
     w = 4.0/5.0
 
-    MG_2!(n,h,initial_guss,w,f,output,200)
+    println("start MG_2")
+
+    MG_2!(n,h,initial_guss,w,f,output,100)
     multOpDirichlet!(n,h,output,output_laplasian,Apply2DLaplasian,w,f)   # laplasian on the output of MG_2 into "output_laplasian"
     residual = output_laplasian - f
     println("done MG_2")
-     #display(output_jacobi)
-    println("\nthe abs of the residual norm is $(norm(residual))")
+    println("the abs of the residual norm is $(norm(residual))")
 
     #ploting
 
