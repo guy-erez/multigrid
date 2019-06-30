@@ -1,5 +1,4 @@
-using Plots
-pyplot()
+####### from matrix notation to julia : x[i,j] = x[i + n1*(j-1)]##########
 
 function inner_loop_interpolation(u11,u21,u12,u22)
 	#y[2i,2j]=x[i,j] coppy common points
@@ -13,13 +12,19 @@ function inner_loop_interpolation(u11,u21,u12,u22)
 	return (y11,y21,y12,y22)
 end
 
-#=
-INPUT : n_cells - a vector containing the number of cells on each dimention --> output grid
-		h - a vector containing the spaceing of nodes on each dimention --> output grid
-		x - a "matrix" of size (n1/2)-1*(n2/2)-1 containing the values on the points --> coarse grid
-		y - a place holder of size n1-1*n2-1 for the answer  --> fine grid
-=#
+"""
+    interpolation_Dirichlet!(n_cells,h,x,y)
 
+interpolat x from coarse grid (n_cells/2) to a fine grid (n_cells)
+...
+# Arguments
+- `n_cells::Array`:[n1,n2] the number of cells in the fine grid
+- `h::Array`:[h1,h2] the spaceing length in the fine grid
+- `x::Array`: (n1/2xn2/2) values of the function to be interpolated
+- `y::Array`: (n1xn2) place holder
+...
+
+"""
 function interpolation_Dirichlet!(n_cells,h,x::Array,y::Array)
 	n1_fine = n_cells[1]
 	n2_fine = n_cells[2]
@@ -74,7 +79,19 @@ INPUT : n - a vector containing the number of cells on each dimention --> output
 		x - a "matrix" of size (n1/2)-1*(n2/2)-1 containing the values on the points --> fine grid
 		y - a place holder of size n1-1*n2-1 for the answer  --> coarse grid
 =#
+"""
+    full_weighting_Dirichlet!(n_cells,h,x,y)
 
+restrict x from fine grid (n_cells*2) to a coarse grid (n_cells)
+...
+# Arguments
+- `n_cells::Array`:[n1,n2] the number of cells in the coarse grid
+- `h::Array`:[h1,h2] the spaceing length in the coarse grid
+- `x::Array`: (n1*2xn2*2) values of the function to be restricted
+- `y::Array`: (n1xn2) place holder
+...
+
+"""
 function full_weighting_Dirichlet!(n_cells,h,x::Array,y::Array)
 	n1_coarse = n_cells[1] - 1
 	n2_coarse = n_cells[2] - 1
@@ -89,65 +106,3 @@ function full_weighting_Dirichlet!(n_cells,h,x::Array,y::Array)
 		end
 	end
 end
-
-n_fine = [2^4,2^5];
-n_coarse = [Int(x/2) for x in n_fine]
-h_fine = 1.0./n_fine;
-h_coarse = h_fine*2
-
-y1 = 1:n_fine[1]-1
-x1 = 1:n_fine[2]-1
-
-y2 = 1:n_coarse[1]-1
-x2 = 1:n_coarse[2]-1
-
-function test_interpolation()
-
-	x_fine = ones(tuple((n_fine.-1)...))
-	x_fine = x_fine .* 5
-	x_coarse = ones(tuple((n_coarse.-1)...))
-
-	interpolation_Dirichlet!(n_fine,h_fine,x_coarse,x_fine)
-	println("done interpolation")
-
-	p1 = plot(x1,y1,x_fine,st=:surface,camera=(-30,30))
-	p2 = plot(x2,y2,x_coarse,st=:surface,camera=(-30,30))
-
-	plot(p1,p2,layout=(1,2),legend=false)
-	savefig("plot_fig_interpolation")
-
-	p3 = plot(y1,x_fine[:,1])
-	p4 = plot(y1,x_fine[:,(n_fine[2]-1)])
-	p5 = plot(x1,x_fine[1,:])
-	p6 = plot(x1,x_fine[(n_fine[1]-1),:])
-
-	plot(p3,p4,p5,p6,layout=(2,2),legend=false)
-	savefig("edges_interpolation")
-end
-
-function test_full_weighting()
-	x_coarse = ones(tuple((n_coarse.-1)...))*5
-	x_fine = ones(tuple((n_fine.-1)...))
-
-	full_weighting_Dirichlet!(n_coarse,h_fine,x_fine,x_coarse)
-	println("done full weighting")
-
-	p1 = plot(x1,y1,x_fine,st=:surface,camera=(-30,30))
-	p2 = plot(x2,y2,x_coarse,st=:surface,camera=(-30,30))
-
-	plot(p1,p2,layout=(1,2),legend=false)
-	savefig("plot_fig_full_weighting")
-
-	p3 = plot(y2,x_coarse[:,1])
-	p4 = plot(y2,x_coarse[:,(n_coarse[2]-1)])
-	p5 = plot(x2,x_coarse[1,:])
-	p6 = plot(x2,x_coarse[(n_coarse[1]-1),:])
-
-	plot(p3,p4,p5,p6,layout=(2,2),legend=false)
-	savefig("edges_full_weghting")
-end
-
-test_full_weighting();
-test_interpolation();
-
-####### from matrix notation to julia : x[i,j] = x[i + n1*(j-1)]##########

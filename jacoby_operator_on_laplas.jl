@@ -1,6 +1,5 @@
 using LinearAlgebra
-using Plots
-pyplot()
+
 """
     Apply2DLaplacian(u0,u_m1,u_p1,u_m2,u_p2,h1,h2,w,f)
 
@@ -56,7 +55,7 @@ compute max_iter iterations of Jacobi to solve of Lu = f
 ...
 # Arguments
 - `n::Array`: [n1,n2] number of cells in the grid
-- `h::Float64`: the spaceing length
+- `h::Array`: [h1,h2] the spaceing length
 - `initial_guess::Array`: (n1-1)x(n2-1) initial values
 - `u_m2::Float64`: the value at one cell 'down'
 - `u_p2::Float64`: the value at one cell 'up'
@@ -81,7 +80,7 @@ compute op operator with zero boundary conditions on x values and save it at y
 ...
 # Arguments
 - `n_cells::Array`: [n1,n2] number of cells in the grid
-- `h::Float64`: the spaceing length
+- `h::Array`:[h1,h2] the spaceing length
 - `x::Array`: (n1-1)x(n2-1) values as input of the operator
 - `y::Array`: (n1-1)x(n2-1) place holder for the result
 - `op::Function`: an operator (op(x0,x1,x2,x3,x4,h,w,f0))
