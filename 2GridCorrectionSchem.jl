@@ -18,7 +18,7 @@ function MG_2!(n_cells::Array, h::Array, initial_guss::Array, w, f::Array, outpu
     coarse_residual = randn(tuple((n_cells_coarse.-1)...))
 
      # relax on fine grid
-    jacobi!(n_cells,h,initial_guss,w,f,output,iter_num)
+    jacobi!(n_cells,h,initial_guss,w,f,output,2)
 
     # compute the fine residual
     # compute: output_laplasian <- Laplas(output) with Diriclet boundry conditions
@@ -35,7 +35,7 @@ function MG_2!(n_cells::Array, h::Array, initial_guss::Array, w, f::Array, outpu
     interpolation_Dirichlet!(n_cells,h,coarse_error,fine_error)
 
     initial_guss = output + fine_error
-    jacobi!(n_cells,h,initial_guss,w,f,output,iter_num)
+    jacobi!(n_cells,h,initial_guss,w,f,output,2)
 end
 
 
@@ -43,18 +43,31 @@ function test_MG_2()
     n = [2^8,2^8];
     h = 1.0./n;
     initial_guss = randn(tuple((n.-1)...))
+
     output = randn(tuple((n.-1)...))
     output_laplasian = randn(tuple((n.-1)...))
     f = fill(0.0,tuple((n.-1)...))
     w = 4.0/5.0
 
     println("start MG_2")
-
-    MG_2!(n,h,initial_guss,w,f,output,100)
-    multOpDirichlet!(n,h,output,output_laplasian,Apply2DLaplasian,w,f)   # laplasian on the output of MG_2 into "output_laplasian"
+    multOpDirichlet!(n,h,initial_guss,output_laplasian,Apply2DLaplasian,w,f)
     residual = output_laplasian - f
+    println("init residual  : ||laplasian(output)|| = $(norm(residual))")
+    println("init output    : ||output|| =            $(norm(initial_guss))")
+    println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
+    for i = 0:20
+        MG_2!(n,h,initial_guss,w,f,output,50)
+        multOpDirichlet!(n,h,output,output_laplasian,Apply2DLaplasian,w,f)   # laplasian on the output of MG_2 into "output_laplasian"
+        residual = output_laplasian - f
+        println("~~residual  : ||laplasian(output)|| = $(norm(residual))")
+        println("~~output    : ||output|| =            $(norm(output))")
+        println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
+        initial_guss.= output
+    end
+
     println("done MG_2")
-    println("the abs of the residual norm is $(norm(residual))")
 
     #ploting
 

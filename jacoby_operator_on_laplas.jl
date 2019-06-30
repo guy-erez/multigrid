@@ -1,39 +1,95 @@
 using LinearAlgebra
 using Plots
 pyplot()
-#=
-PURPOSE : preform an approximation to the (-)laplasian of u at possition u0.
-INPUT : u0 - the possition where the laplasian is approximated.
-		u_mi = u0 - hi
-		u_pi = u0 + hi
-		where i denote the directions 1,2
-		hi - the grid spaceing in the i directions
-		w,f are not used in this
-OUTPUT : the value of the approximation to the laplasian at u0.
-=#
+"""
+    Apply2DLaplacian(u0,u_m1,u_p1,u_m2,u_p2,h1,h2,w,f)
 
-function Apply2DLaplasian(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p2::Float64,h1::Float64,h2::Float64,w::Float64,f::Float64) # x-->u
+compute an approximation to (-1*)Laplacian of u at possition u0
+...
+# Arguments
+- `u0::Float64`: the value at the wanted position to compute the Laplacian
+- `u_m1::Float64`: the value at one cell 'left'
+- `u_p1::Float64`: the value at one cell 'right'
+- `u_m2::Float64`: the value at one cell 'down'
+- `u_p2::Float64`: the value at one cell 'up'
+- `h1::Float64`: the spaceing length in first direction
+- `h2::Float64`: the spaceing length in second direction
+- `w::Float64`: not in use - for generalization
+- `f::Float64`: not in use - for generalization
+...
+
+"""
+function Apply2DLaplacian(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p2::Float64,h1::Float64,h2::Float64,w::Float64,f::Float64) # x-->u
 	h1invsq = 1.0/(h1^2) # calculted every time with no need
 	h2invsq = 1.0/(h2^2) # calculted every time with no need
 	return (2*h1invsq + 2*h2invsq)*u0 - h1invsq*(u_m1 + u_p1) - h2invsq*(u_m2 + u_p2);
 end
 
+"""
+    Apply2DJacobiStep(u0,u_m1,u_p1,u_m2,u_p2,h1,h2,w,f)
 
+compute the Jacobi operation of Lu = f at possition u0 -> u0 + w*(1/2*(1/(h1^2)+1/(h2^2))*(f-Lu)
+...
+# Arguments
+- `u0::Float64`: the value at the wanted position to compute the Laplacian
+- `u_m1::Float64`: the value at one cell 'left'
+- `u_p1::Float64`: the value at one cell 'right'
+- `u_m2::Float64`: the value at one cell 'down'
+- `u_p2::Float64`: the value at one cell 'up'
+- `h1::Float64`: the spaceing length in first direction
+- `h2::Float64`: the spaceing length in second direction
+- `w::Float64`: weight (usually 4/5)
+- `f::Float64`: f from the equation to be solved Lu=f
+...
+
+"""
 function Apply2DJacobiStep(u0::Float64,u_m1::Float64,u_p1::Float64,u_m2::Float64,u_p2::Float64,h1::Float64,h2::Float64,w::Float64,f::Float64)
-	d = 2*(1.0/(h1^2) + 1.0/(h2^2)) 						  			# the diagonal element of the laplasian operator
-	L_u = Apply2DLaplasian(u0,u_m1,u_p1,u_m2,u_p2,h1,h2,w,f)			# laplasian*u
+	d = 2*(1.0/(h1^2) + 1.0/(h2^2)) 						  			# the diagonal element of the Laplacian operator
+	L_u = Apply2DLaplacian(u0,u_m1,u_p1,u_m2,u_p2,h1,h2,w,f)			# Laplacian*u
 	return u0 + w*(1.0/d)*(f - L_u)
 end
 
+"""
+    jacobi!(n,h,initial_guess,w,f,output,max_iter)
 
-function jacobi!(n, h, initial_guss::Array,w::Float64,f::Array, output::Array, max_iter::Int64)
+compute max_iter iterations of Jacobi to solve of Lu = f
+...
+# Arguments
+- `n::Array`: [n1,n2] number of cells in the grid
+- `h::Float64`: the spaceing length
+- `initial_guess::Array`: (n1-1)x(n2-1) initial values
+- `u_m2::Float64`: the value at one cell 'down'
+- `u_p2::Float64`: the value at one cell 'up'
+- `w::Float64`: weight (usually 4/5)
+- `f::Float64`: f from the equation to be solved Lu=f
+- `output::Array`: (n1-1)x(n2-1) place holder for the result
+- `max_iter::Int64`: number of Jacobi iterations to be done
+...
+
+"""
+function jacobi!(n, h, initial_guess::Array,w::Float64,f::Array, output::Array, max_iter::Int64)
 	for i in 1:max_iter
-		multOpDirichlet!(n,h,initial_guss,output,Apply2DJacobiStep,w,f)
-		initial_guss = output
+		multOpDirichlet!(n,h,initial_guess,output,Apply2DJacobiStep,w,f)
+		initial_guess = output
 	end
 end
 
+"""
+    multOpDirichlet!(n_cells,h,x,y,op,w,f)
 
+compute op operator with zero boundary conditions on x values and save it at y
+...
+# Arguments
+- `n_cells::Array`: [n1,n2] number of cells in the grid
+- `h::Float64`: the spaceing length
+- `x::Array`: (n1-1)x(n2-1) values as input of the operator
+- `y::Array`: (n1-1)x(n2-1) place holder for the result
+- `op::Function`: an operator (op(x0,x1,x2,x3,x4,h,w,f0))
+- `w::Float64`: weight for op
+- `f::Float64`:(n1-1)x(n2-1) values of f for op
+...
+
+"""
 function multOpDirichlet!(n_cells,h,x::Array,y::Array,op::Function,w,f::Array)
 	dim = 2;
 	if dim==2
@@ -75,28 +131,3 @@ function multOpDirichlet!(n_cells,h,x::Array,y::Array,op::Function,w,f::Array)
 	else
 	end
 end
-println("start jacobi")
-
-n = [100,100];
-h = 1.0./n;
-u = randn(tuple((n.-1)...))
-output_jacobi = randn(tuple((n.-1)...))
-output_laplasian = randn(tuple((n.-1)...))
-f = fill(0.0,tuple((n.-1)...))
-w = 4.0/5.0
-
-jacobi!(n,h,u,w,f,output_jacobi,1200)
-multOpDirichlet!(n,h,output_jacobi,output_laplasian,Apply2DLaplasian,w,f)   # laplasian on the output of jacoi into "output_laplasian"
-residual = output_laplasian - f
-
-println("\nthe approximate value is :")
- #display(output_jacobi)
-println("\nthe abs of the residual norm is $(norm(residual))\n")
-
-#ploting
-
-x = 1:n[1]-1
-y= 1:n[2]-1
-
-plot(x,y,output_jacobi,st=:surface,camera=(-30,30))
-savefig("plot_fig")

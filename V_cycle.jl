@@ -10,7 +10,7 @@ function MG_V_cycle!(n_cells::Array, h::Array, initial_guess::Array, w, f::Array
         coarse_error = randn(tuple((n_cells_coarse.-1)...))
         residual = randn(tuple((n_cells_coarse.-1)...))
 
-        jacobi!(n_cells,h,initial_guess,w,f,output,iter_num)
+        jacobi!(n_cells,h,initial_guess,w,f,output,2)
         initial_guess = output
 
         if(n_cells[1]%2 == 0 && n_cells[2]%2 == 0 && n_cells[1] > 4 && n_cells[2] > 4 ) # there are more levels to go
@@ -23,9 +23,10 @@ function MG_V_cycle!(n_cells::Array, h::Array, initial_guess::Array, w, f::Array
 
                 interpolation_Dirichlet!(n_cells, h, coarse_error, fine_error)
                 initial_guess = initial_guess + fine_error
+        else
+                jacobi!(n_cells,h,initial_guess,w,f,output,iter_num)
         end
-        jacobi!(n_cells,h,initial_guess,w,f,output,iter_num)
-
+        jacobi!(n_cells,h,initial_guess,w,f,output,2)
 end
 
 function test_MG_V_cycle()
@@ -33,15 +34,27 @@ function test_MG_V_cycle()
     h = 1.0./n;
     initial_guess = randn(tuple((n.-1)...))
     output = randn(tuple((n.-1)...))
-    output_laplasian = randn(tuple((n.-1)...))
+    output_laplasian = zeros(tuple((n.-1)...))
     f = fill(0.0,tuple((n.-1)...))
     w = 4.0/5.0
 
-    MG_V_cycle!(n,h,initial_guess,w,f,output,100)
-    multOpDirichlet!(n,h,output,output_laplasian,Apply2DLaplasian,w,f)   # laplasian on the output of MG_2 into "output_laplasian"
+    println("start MG_V_cycle")
+    multOpDirichlet!(n,h,output,output_laplasian,Apply2DLaplasian,w,f)
     residual = output_laplasian - f
+    println("init residual  : ||laplasian(output)|| = $(norm(residual))")
+    println("init output    : ||output|| =            $(norm(output))")
+
+    for i = 0:20
+        MG_V_cycle!(n,h,initial_guess,w,f,output,100)
+        multOpDirichlet!(n,h,output,output_laplasian,Apply2DLaplasian,w,f)   # laplasian on the output of MG_2 into "output_laplasian"
+        residual = output_laplasian - f
+        println("~~residual     : ||laplasian(output)|| = $(norm(residual))")
+        println("~~output       : ||output|| =            $(norm(output))")
+        println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
+        initial_guess.= output
+    end
     println("done MG_V_cycle")
-    println("the abs of the residual norm is $(norm(residual))")
 
     #ploting
 
@@ -52,5 +65,4 @@ function test_MG_V_cycle()
     savefig("plot_fig_mg_v_cycle")
 end
 
-println("start MG_V_cycle")
 test_MG_V_cycle()
