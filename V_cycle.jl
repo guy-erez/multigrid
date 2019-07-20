@@ -23,12 +23,12 @@ function MG_V_cycle!(n_cells::Array, h::Array, initial_guess::Array, w, f::Array
         coarse_error = randn(tuple((n_cells_coarse.-1)...))
         residual = randn(tuple((n_cells_coarse.-1)...))
 
-        jacobi!(n_cells,h,initial_guess,w,f,output,2)
+        jacobi!(n_cells,h,initial_guess,w,f,output,1)
         initial_guess = output
 
         if(n_cells[1]%2 == 0 && n_cells[2]%2 == 0 && n_cells[1] > 4 && n_cells[2] > 4 ) # there are more levels to go
                 #compute the residual
-                multOpDirichlet!(n_cells,h,initial_guess,output_laplasian,Apply2DLaplasian,w,f) # f is not in use in Apply2DLaplasian #
+                multOpDirichlet!(n_cells,h,initial_guess,output_laplasian,Apply2DLaplacian,w,f) # f is not in use in Apply2DLaplacian #
                 fine_residual = f - output_laplasian
                 full_weighting_Dirichlet!(n_cells_coarse,h*2,fine_residual,residual)
 
@@ -39,5 +39,5 @@ function MG_V_cycle!(n_cells::Array, h::Array, initial_guess::Array, w, f::Array
         else
                 jacobi!(n_cells,h,initial_guess,w,f,output,iter_num)
         end
-        jacobi!(n_cells,h,initial_guess,w,f,output,2)
+        jacobi!(n_cells,h,initial_guess,w,f,output,1)
 end

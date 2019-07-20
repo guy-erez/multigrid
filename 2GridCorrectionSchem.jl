@@ -23,11 +23,11 @@ function MG_2!(n_cells::Array, h::Array, initial_guess::Array, w, f::Array, outp
     coarse_residual = randn(tuple((n_cells_coarse.-1)...))
 
      # relax on fine grid
-    jacobi!(n_cells,h,initial_guess,w,f,output,2)
+    jacobi!(n_cells,h,initial_guess,w,f,output,1)
 
     # compute the fine residual
     # compute: output_laplasian <- Laplas(output) with Diriclet boundry conditions
-    multOpDirichlet!(n_cells,h,output,output_laplasian,Apply2DLaplasian,w,f) # f is not in use in Apply2DLaplasian #
+    multOpDirichlet!(n_cells,h,output,output_laplasian,Apply2DLaplacian,w,f) # f is not in use in Apply2DLaplacian #
     fine_residual = f - output_laplasian
 
     # restrict the residual to the coarse grid
@@ -40,5 +40,5 @@ function MG_2!(n_cells::Array, h::Array, initial_guess::Array, w, f::Array, outp
     interpolation_Dirichlet!(n_cells,h,coarse_error,fine_error)
 
     initial_guess = output + fine_error
-    jacobi!(n_cells,h,initial_guess,w,f,output,2)
+    jacobi!(n_cells,h,initial_guess,w,f,output,1)
 end
